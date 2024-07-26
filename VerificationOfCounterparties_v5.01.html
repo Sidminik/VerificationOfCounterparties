@@ -1,0 +1,600 @@
+<!doctype html>
+<html lang="ru">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+
+  <title>Проверка КП</title>
+
+  <style>
+    .input-group {
+      margin-top: 10px;
+      margin-bottom: 10px;
+    }
+
+    .col,
+    .col-4 {
+      margin: 1px;
+      overflow: auto;
+      max-height: 25vh;
+    }
+
+    .row_0>.col {
+      max-height: 11vh;
+    }
+
+    .print {
+      text-align: center;
+    }
+
+    .row_end>div {
+      padding: 0;
+    }
+
+    .tab_flex {
+      display: flex;
+    }
+
+    p {
+      margin-bottom: 0;
+    }
+
+    .select {
+      background-color: rgba(255, 0, 0, 0.150);
+    }
+
+    #clear, #print_form {
+      width: 95%;
+    }
+
+    #cost_1, #cost_2 {
+      text-align: right;
+    }
+    
+    #cost_1 {
+      width: 50%;
+    }
+    
+    #cost_2 {
+      width: 10%;
+    }
+
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+        /* display: none; <- Crashes Chrome on hover */
+        -webkit-appearance: none;
+        margin: 0; /* <-- Apparently some margin are still there even though it's hidden */
+    }
+
+    @media all and (orientation: portrait) {
+
+      .input-group-text,
+      #print_form {
+        display: none;
+      }
+
+      .row>* {
+        padding: 0;
+      }
+
+      div,
+      p {
+        font-size: 6px;
+      }
+    }
+
+    @media print {
+      @page {
+        size: landscape;
+      }
+
+      p {
+        font-size: 10px;
+      }
+
+      .row_0>.col,
+      .row_0>.col-4 {
+        overflow: hidden;
+        font-size: 10px;
+        min-height: 26vh;
+      }
+
+      .row_org>.col,
+      .row_org>.col-4 {
+        overflow: hidden;
+        min-height: auto;
+        max-height: 100vh;
+      }
+
+      .tab {
+        font-size: 12px;
+      }
+
+      .row+.tab {
+        margin-top: 15px;
+      }
+
+      .cost, #name {
+        border: none;
+        font-size: 10px;
+        height: auto;
+        max-width: auto;
+        padding-right: 2px;
+      }
+    }
+  </style>
+
+</head>
+
+<body class="bg-light text-dark">
+  <h6 class="print d-none d-print-block">Оценка и согласование информации из коммерческих предложений, поступивших от
+    контрагентов по закупке:</h6>
+  <h5 class="print d-none d-print-block" id="pen_1">
+    _______________________________________________________________________________________________________________________________
+  </h5>
+  <p class="print d-none d-print-block" id="pen_2">Вид закупки, номер или наименование закупки, начальная максимальная цена закупки </p>
+  <h5 class="print d-none d-print-block" id="pen_3">
+    _______________________________________________________________________________________________________________________________
+  </h5>
+
+  <div class="container-fluid container-all">
+
+    <form class="row g-3">
+      <div class="col-sm-7">
+        <div class="input-group input-group-large">
+          <textarea type="text" class="form-control" placeholder="Введите наименование закупки" rows="3" id="name"></textarea>
+        </div>
+      </div>
+
+      <div class="col-sm-3">
+        <div class="input-group input-group-large">
+          <input type="number" min="0" class="form-control cost" placeholder="0" id="cost_1">
+          <span class="input-group-text cost" id="cost_text_1">руб.</span>
+          <input type="number" min="0" max="99" class="form-control cost" placeholder="00" id="cost_2">
+          <span class="input-group-text cost" id="cost_text_2">коп.</span>
+
+        </div>
+
+        <div class="input-group input-group-large">
+          <input type="text" class="form-control d-print-none" id="inputInn" placeholder="Введите ИНН"
+            aria-label="Recipient's username">
+        </div>
+      </div>
+
+      <div class="col-sm-2 d-print-none">
+        <div class="input-group input-group-large d-print-none">
+          <div class="col-sm d-print-none">
+            <button class="btn btn-outline-success d-print-none" type="button" id="print_form">Печать</button>
+          </div>
+          
+          <div class="col-sm d-print-none" align="right">
+            <button class="btn btn-outline-success d-print-none" type="button" id="clear">Очистить</button>
+          </div>
+        </div>
+          
+        <div class="d-grid gap-2 col-6 input-group input-group-large d-print-none">
+          <button class="btn btn-outline-success d-print-none" type="button" id="search">Поиск</button>
+        </div>
+      </div> 
+    </form>
+
+    <div class="container-fluid">
+      <div class="row row_0">
+        <div class="col border">
+          Наименование ЮЛ или ИП**
+        </div>
+        <div class="col border">
+          Сведения о ликвидации ЮЛ, либо о прекращении деятельности ИП
+        </div>
+        <div class="col-4 border">
+          Совпадение вида деятельности по ОКВЭД с информацией в коммерческом предложении* от контрагента
+        </div>
+        <div class="col border">
+          Отсутствие сведений о ЮЛ, либо об ИП в реестре недобросовестных поставщиков
+        </div>
+        <div class="col border">
+          Отсутствие решения арбитражного суда о признании ЮЛ или ИП банкротом
+        </div>
+        <div class="col border">
+          Сведения о присутствии руководителя ЮЛ или ИП, подавших коммерческие предложения*, в составе учредителей ЮЛ,
+          также подавшего коммерческое предложение* по аналогичному предмету закупки
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container-fluid d-none d-print-block tab">
+    <div class="row d-none d-print-block">
+      <div class="col d-none d-print-block">* - рассматриваются коммерческие предложения,
+        в обязательном порядке зарегистрированные в журнале входящей корреспонденции в канцелярии учреждения.</div>
+      <div class="col d-none d-print-block">** - указываются ЮЛ и ИП, коммерческие предложения которых выбраны для
+        обоснования первоначальной цены закупки.</div>
+    </div>
+    <div class="row d-none tab">
+      <div class="col-auto d-none d-print-block tab">Результаты оценки <br> коммерческих предложений</div>
+      <div class="col-auto d-none d-print-block tab" align="center">______________________________</div>
+      <div class="col-auto d-none d-print-block tab">_____________________________________</div>
+      <div class="col-auto d-none d-print-block tab" align="center">_________</div>
+      <div class="col-auto d-none d-print-block tab">_________</div>
+      <div class="col-auto d-none d-print-block tab data_screen" align="center">_________ /_________ /20_________</div>
+    </div>
+  </div>
+
+  <script>
+    let organisations = [];
+    let dataArr;
+    let screenNum = 0;
+    setFocus();
+
+    function setFocus() {
+      document.getElementById("name").focus();
+    }
+
+    document.addEventListener('keydown', function (event) {
+      if ((event.code == 'Enter' || event.code == 'NumpadEnter')) {
+        if (document.activeElement.id == "inputInn") {
+          search.onclick();
+        }
+      }
+    });
+    
+    search.onclick = function () {
+      urlGeneration("inputInn");
+      document.getElementById("inputInn").value = "";
+      document.getElementById("inputInn").focus();
+    }
+
+    function urlGeneration(input) {
+	  let userKey = prompt("Введите Ваш API-ключ, полученный после регистрации на сайте ofdata.ru");
+      let inn = document.getElementById(input).value;
+      let url;
+      if (inn.length == 10) {
+		url = "https://api.ofdata.ru/v2/company?key=" + `${userKey}` + "&inn=" + inn;
+      } else if (inn.length == 12) {
+        url = "https://api.ofdata.ru/v2/entrepreneur?key=" + `${userKey}` + "&inn=" + inn;
+      } else {
+		alert("Проверьте корректность вводимых данных ИНН!\nНеобходимо ввести ИНН организации (10 цифр)\nили ИНН индивидуального предпренимателя (12 цифр)!");
+	  }
+      getServerData(inn, url);
+    }
+
+    function getServerData(inn, url) {
+      fetch(`http://api.allorigins.win/get?url=${encodeURIComponent(url)}`)
+        .then(response => {
+          if (response.ok) return response.json()
+          throw new Error('Network response was not ok.')
+        })
+        .then(data => {
+          dataArr = JSON.parse(data.contents);
+          organisations.push(dataArr);
+        })
+        .then(data => {
+          searchChange(organisations.length);
+        });
+    }
+
+    function searchChange (numOrg) {
+      let search = document.querySelector("#search");
+      let searchNum = 0;
+      for (let i = 0; i < numOrg; i++) {
+        if (organisations[i].meta.today_request_count > searchNum) {
+          searchNum = organisations[i].meta.today_request_count;
+        } 
+      }
+      search.innerHTML = "Поиск (осталось: " + `${100 - searchNum}` + ")"; 
+      createNewDiv(numOrg);
+    }
+
+    function createNewDiv(numOrg) {
+      let parentGrid = document.querySelector('.container-all');
+      let createBox = document.createElement('div');
+      let currentLine = "line_" + `${numOrg}`;
+      createBox.className = "container-fluid bg-white " + `${currentLine}`;
+      currentLine = "." + currentLine;
+      parentGrid.appendChild(createBox);
+      createNewLine(numOrg, currentLine);
+    }
+
+    function createNewLine(numOrg, currentLine) {
+      let parentGrid = document.querySelector(`${currentLine}`);
+      let createBox = document.createElement('div');
+      createBox.className = "row row_org row_" + `${numOrg}`;
+      parentGrid.appendChild(createBox);
+      createNewLineOrg(numOrg);
+    }
+
+    function createNewLineOrg(numOrg) {
+      for (let i = 1; i < 7; i++) {
+        let parentGrid = document.querySelector(".row_" + `${numOrg}`);
+        let createBox = document.createElement('div');
+        if (i == 3) {
+          createBox.className = "col-4 border org" + `${numOrg}` + "_" + i;
+        } else {
+          createBox.className = "col border org" + `${numOrg}` + "_" + i;
+        }
+        createBox.innerHTML = '<p id="org' + `${numOrg}` + "_" + i + '">' + '</p>';
+        parentGrid.appendChild(createBox);
+        let a = document.querySelector(".org" + `${numOrg}` + "_" + i);
+        // обработчик возможности выделения ячейки по клику
+        a.onclick = function () {
+          if (a.className.includes('select')) {
+            createBox.classList.remove('select');
+          } else {
+            createBox.classList.add('select');
+          }
+        };
+      }
+      if (organisations[numOrg - 1].data.ИНН.length == 10) {
+        onScreenOrg(organisations.length);
+      } else if (organisations[numOrg - 1].data.ИНН.length == 12) {
+        onScreenIP(organisations.length);
+      }
+      if (organisations.length > 1) {
+        searchLink(organisations.length);
+      }
+    }
+
+    function onScreenOrg(numOrg) {
+      // обработка основных сведений об организации
+      console.log("🚀 ~ onScreen ~ organisations", organisations)
+      let orgInfo = "<b>" + organisations[numOrg - 1].data.НаимСокр + "</b>" + `${"<br />"}` + `${"<br />"}`;
+      orgInfo += "ИНН: " + organisations[numOrg - 1].data.ИНН + `${"<br />"}` + `${"<br />"}`;
+      orgInfo += "ОГРН: " + organisations[numOrg - 1].data.ОГРН + `${"<br />"}` + `${"<br />"}`;
+      orgInfo += organisations[numOrg - 1].data.ЮрАдрес.АдресРФ;
+
+      document.querySelector("#org" + `${numOrg}` + "_" + 1).innerHTML = orgInfo;
+
+      // обработка действующих организаций
+      if (organisations[numOrg - 1].data.Ликвид) {
+        document.querySelector("#org" + `${numOrg}` + "_" + 2).innerHTML = "Не действует." + `${"<br />"}` + `${"<br />"}` + " Дата ликвидации: " + organisations[numOrg - 1].data.Ликвид.Дата;
+        document.querySelector(".org" + `${numOrg}` + "_" + 2).classList.add("border-danger", "border-4");
+        document.querySelector(".org" + `${numOrg}` + "_" + 1).classList.add("border-danger", "border-4");
+      } else {
+        document.querySelector("#org" + `${numOrg}` + "_" + 2).innerHTML = "Действует";
+      }
+
+      // обработка всех ОКВЭД
+      let okvedArr_value = () => {
+        okvedArr_value = organisations[numOrg - 1].data.ОКВЭД.Код + " " + organisations[numOrg - 1].data.ОКВЭД.Наим + `${"<br />"}`;
+        for (let i = 0; i < organisations[numOrg - 1].data.ОКВЭДДоп.length; i++) {
+          okvedArr_value += organisations[numOrg - 1].data.ОКВЭДДоп[i].Код + " " + organisations[numOrg - 1].data.ОКВЭДДоп[i].Наим + `${"<br />"}`;
+        }
+        return okvedArr_value;
+      }
+      document.querySelector("#org" + `${numOrg}` + "_" + 3).innerHTML = okvedArr_value();
+
+      // обработка недобросовестных поставщиков
+      if (organisations[numOrg - 1].data.НедобПост == true) {
+        let dataPub = "Записи: " + `${"<br />"}`;
+        organisations[numOrg - 1].data.НедобПостЗап.forEach((item) => {
+          dataPub += item.РеестрНомер + " от " + item.ДатаПуб + "; " + `${"<br />"}`;
+        });
+        document.querySelector("#org" + `${numOrg}` + "_" + 4).innerHTML = "Включен в реестр недобросовестных поставщиков." + `${"<br />"}` + dataPub;
+        document.querySelector(".org" + `${numOrg}` + "_" + 4).classList.add("border-danger", "border-4");
+        document.querySelector(".org" + `${numOrg}` + "_" + 1).classList.add("border-danger", "border-4");
+      } else {
+        document.querySelector("#org" + `${numOrg}` + "_" + 4).innerHTML = "Сведения в реестре отсутствуют"
+      }
+
+      // обработка банкротов
+      if (organisations[numOrg - 1].data.Статус.Код == 117) {
+        document.querySelector("#org" + `${numOrg}` + "_" + 5).innerHTML = organisations[numOrg - 1].data.Статус.Наим;
+        document.querySelector(".org" + `${numOrg}` + "_" + 5).classList.add("border-danger", "border-4");
+        document.querySelector(".org" + `${numOrg}` + "_" + 1).classList.add("border-danger", "border-4");
+      } else if (organisations[numOrg - 1].data.Ликвид) {
+        document.querySelector("#org" + `${numOrg}` + "_" + 5).innerHTML = organisations[numOrg - 1].data.Ликвид.Наим;
+        document.querySelector(".org" + `${numOrg}` + "_" + 5).classList.add("border-danger", "border-4");
+        document.querySelector(".org" + `${numOrg}` + "_" + 1).classList.add("border-danger", "border-4");
+      } else {
+        document.querySelector("#org" + `${numOrg}` + "_" + 5).innerHTML = "Сведения в реестре отсутствуют";
+      }
+
+      // обработка связей руководителей и учредителей
+      let dataBoss = "Руководитель: " + `${"<br />"}`;
+      organisations[numOrg - 1].data.Руковод.forEach((item) => {
+        dataBoss += item.ФИО + `${"<br />"}` + "(ИНН: " + item.ИНН + ")" + `${"<br />"}` + `${"<br />"}`;
+      });
+      if (organisations[numOrg - 1].data.Учред.ФЛ.length > 0) {
+        dataBoss += "Учредители: " + `${"<br />"}`;
+        organisations[numOrg - 1].data.Учред.ФЛ.forEach((item) => {
+          dataBoss += item.ФИО + `${"<br />"}` + "(ИНН: " + item.ИНН + ")" + `${"<br />"}` + `${"<br />"}`;
+        });
+      }
+      document.querySelector("#org" + `${numOrg}` + "_" + 6).innerHTML = dataBoss;
+    }
+
+    function onScreenIP(numOrg) {
+      console.log(organisations)
+
+      // обработка основных сведений об ИП
+      let orgInfo = "<b>" + "ИП " + organisations[numOrg - 1].data.ФИО + "</b>" + `${"<br />"}` + `${"<br />"}`;
+      orgInfo += "ИНН: " + organisations[numOrg - 1].data.ИНН + `${"<br />"}` + `${"<br />"}`;
+      orgInfo += "ОГРНИП: " + organisations[numOrg - 1].data.ОГРНИП + `${"<br />"}` + `${"<br />"}`;
+      orgInfo += organisations[numOrg - 1].data.Регион.Наим + ", " + organisations[numOrg - 1].data.НасПункт;
+      document.querySelector("#org" + `${numOrg}` + "_" + 1).innerHTML = orgInfo;
+
+      // обработка действующих ИП
+      if (organisations[numOrg - 1].data.Прекращ) {
+        document.querySelector("#org" + `${numOrg}` + "_" + 2).innerHTML = "Не действует." + `${"<br />"}` + `${"<br />"}` + " Дата прекращения деятельности: " + organisations[numOrg - 1].data.Прекращ.Дата;
+        document.querySelector(".org" + `${numOrg}` + "_" + 2).classList.add("border-danger", "border-4");
+        document.querySelector(".org" + `${numOrg}` + "_" + 1).classList.add("border-danger", "border-4");
+      } else {
+        document.querySelector("#org" + `${numOrg}` + "_" + 2).innerHTML = "Действует";
+      }
+
+      // обработка всех ОКВЭД
+      let okvedArr_value = () => {
+        okvedArr_value = organisations[numOrg - 1].data.ОКВЭД.Код + " " + organisations[numOrg - 1].data.ОКВЭД.Наим + `${"<br />"}`;
+        for (let i = 0; i < organisations[numOrg - 1].data.ОКВЭДДоп.length; i++) {
+          okvedArr_value += organisations[numOrg - 1].data.ОКВЭДДоп[i].Код + " " + organisations[numOrg - 1].data.ОКВЭДДоп[i].Наим + `${"<br />"}`;
+        }
+        return okvedArr_value;
+      }
+      document.querySelector("#org" + `${numOrg}` + "_" + 3).innerHTML = okvedArr_value();
+
+      // обработка недобросовестных поставщиков
+      if (organisations[numOrg - 1].data.НедобПост == true) {
+        document.querySelector("#org" + `${numOrg}` + "_" + 4).innerHTML = "Включен в реестр недобросовестных поставщиков." + `${"<br />"}` + `${"<br />"}` + "Всего активных записей: " + organisations[numOrg - 1].data.НедобПостЗап.length;
+        document.querySelector(".org" + `${numOrg}` + "_" + 4).classList.add("border-danger", "border-4");
+        document.querySelector(".org" + `${numOrg}` + "_" + 1).classList.add("border-danger", "border-4");
+      } else {
+        document.querySelector("#org" + `${numOrg}` + "_" + 4).innerHTML = "Сведения в реестре отсутствуют"
+      }
+
+      // обработка банкротов
+      if (organisations[numOrg - 1].data.Прекращ) {
+        document.querySelector("#org" + `${numOrg}` + "_" + 5).innerHTML = organisations[numOrg - 1].data.Прекращ.Наим;
+        document.querySelector(".org" + `${numOrg}` + "_" + 5).classList.add("border-danger", "border-4");
+        document.querySelector(".org" + `${numOrg}` + "_" + 1).classList.add("border-danger", "border-4");
+      } else {
+        document.querySelector("#org" + `${numOrg}` + "_" + 5).innerHTML = "Сведения в реестре отсутствуют";
+      }
+
+      // обработка связей руководителей и учредителей
+      let dataBoss = organisations[numOrg - 1].data.ФИО + `${"<br />"}` + `${"<br />"}` + "(ИНН: " + organisations[numOrg - 1].data.ИНН + ")";
+      document.querySelector("#org" + `${numOrg}` + "_" + 6).innerHTML = dataBoss;
+    }
+
+    function searchLink(numOrg) {
+      let searchLinkBoss = [];
+      for (let i = 0; i <= (numOrg - 1); i++) {
+        searchLinkBoss[i] = [];
+        organisations[i].data.Руковод.forEach((item) => {
+          searchLinkBoss[i].push(item.ИНН);
+        });
+        organisations[i].data.Учред.ФЛ.forEach((item) => {
+          if (!searchLinkBoss[i].includes(item.ИНН)) {
+            searchLinkBoss[i].push(item.ИНН);
+          }
+        });
+      }
+      for (let i = 0; i <= (numOrg - 1); i++) {
+        searchLinkBoss[i].forEach((item) => {
+          for (let j = i + 1; j <= (numOrg - 1); j++) {
+            searchLinkBoss[j].forEach((item_2) => {
+              if (item === item_2) {
+                document.querySelector(".org" + `${i + 1}` + "_" + 6).classList.add("border-danger", "border-4");
+                document.querySelector(".org" + `${j + 1}` + "_" + 6).classList.add("border-danger", "border-4");
+                document.querySelector(".org" + `${i + 1}` + "_" + 1).classList.add("border-danger", "border-4");
+                document.querySelector(".org" + `${j + 1}` + "_" + 1).classList.add("border-danger", "border-4");
+              }
+            });
+          }
+        });
+      }
+    }
+
+    print_form.onclick = function () {
+      let classArr = document.querySelectorAll(".tab")
+      for (let i = 0; i < classArr.length; i++) {
+        classArr[i].classList.remove("d-none");
+        classArr[i].classList.add("tab_flex");
+        classArr[i].classList.add("align-items-end");
+      }
+
+      for (let i = 0; i < organisations.length; i++) {
+        for (let j = 1; j <= 6; j++) {
+          let currentBox = document.querySelector(".org" + `${i + 1}` + "_" + j);
+          if (!currentBox.className.includes('select')) {
+            switch (j) {
+              case 1:
+                let index = currentBox.innerHTML.indexOf("<br><br>ОГРН");
+                currentBox.innerHTML = currentBox.innerHTML.slice(0, index);
+                index = currentBox.innerHTML.indexOf("<br>");
+                currentBox.innerHTML = currentBox.innerHTML.slice(0, index) + currentBox.innerHTML.slice(index + 4);
+                break;
+              case 2:
+                currentBox.innerHTML = "<p align='center'>отсутствуют</p>";
+                break;
+              case 3:
+                currentBox.innerHTML = "<p align='center'>совпадают</p>";
+                break;
+              case 4:
+                currentBox.innerHTML = "<p align='center'>отсутствуют</p>";
+                break;
+              case 5:
+                currentBox.innerHTML = "<p align='center'>отсутствует</p>";
+                break;
+              case 6:
+                currentBox.innerHTML = "<p align='center'>отсутствуют</p>";
+                break;
+            }
+          } else {
+            switch (j) {
+              case 1:
+                let index = currentBox.innerHTML.indexOf("<br><br>ОГРН");
+                currentBox.innerHTML = currentBox.innerHTML.slice(0, index);
+                index = currentBox.innerHTML.indexOf("<br>");
+                currentBox.innerHTML = currentBox.innerHTML.slice(0, index) + currentBox.innerHTML.slice(index + 4);
+                break;
+              case 2:
+                currentBox.innerHTML = "<p align='center'><b>не действует</b></p>";
+                break;
+              case 3:
+                currentBox.innerHTML = "<p align='center'><b>виды деятельности не совпадают</b></p>";
+                break;
+              case 4:
+                currentBox.innerHTML = "<p align='center'><b>состоит в реестре</b></p>";
+                break;
+              case 5:
+                currentBox.innerHTML = "<p align='center'><b>банкротство и/или ликвидации</b></p>";
+                break;
+              case 6:
+                currentBox.innerHTML = "<p align='center'><b>найдены совпадения</b></p>";
+                break;
+            }
+          }
+        }
+      }
+
+      for (let i = 0; i < organisations.length; i++) {
+        for (let j = 1; j <= 6; j++) {
+          let currentBox = document.querySelector(".org" + `${i + 1}` + "_" + j);
+          if (currentBox.className.includes('border-danger')) {
+            currentBox.classList.remove('border-danger');
+          }
+          if (currentBox.className.includes('border-4')) {
+            currentBox.classList.remove('border-4');
+          }
+        }
+      }
+      
+      if (!document.querySelector('#name').value) {
+        document.querySelector('#name').classList.add("d-print-none");
+      } else {
+        document.querySelector('#pen_1').classList.add("d-print-none");
+        document.querySelector('#pen_2').classList.add("d-print-none");
+        document.querySelector('#pen_3').classList.add("d-print-none");
+      }
+
+      if (!document.querySelector('#cost_1').value) {
+        document.querySelector('#cost_1').classList.add("d-print-none");
+        document.querySelector('#cost_text_1').classList.add("d-print-none");
+      }
+
+      if (document.querySelector('#cost_1').value && !document.querySelector('#cost_2').value) {
+        document.querySelector('#cost_2').value = "00";
+      } else if (!document.querySelector('#cost_2').value) {
+        document.querySelector('#cost_2').classList.add("d-print-none");
+        document.querySelector('#cost_text_2').classList.add("d-print-none");
+      } 
+      
+      window.print();
+    }
+
+    clear.onclick = function () {
+      location.reload();
+    }
+
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
+    crossorigin="anonymous"></script>
+</body>
+
+</html>
